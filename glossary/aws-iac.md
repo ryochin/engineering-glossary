@@ -520,6 +520,8 @@ AWS IAM の文脈では、IAM ポリシーのアクション・リソースを�
 - [ディフェンス・イン・デプス](design.md#ディフェンスインデプス)
 - [ガードレール](design.md#ガードレール)
 - [Undocumented Resource](#undocumented-resource)
+- [Zero Trust](security.md#zero-trust)
+- [RBAC / ABAC](security.md#rbac--abac)
 
 ---
 

@@ -216,6 +216,7 @@
 - [ディフェンス・イン・デプス](#ディフェンスインデプス)
 - [Least Privilege (IAM)](aws-iac.md#least-privilege-iam)
 - [Blast Radius](aws-iac.md#blast-radius)
+- [AI Guardrails](ai-ml.md#ai-guardrails)
 
 ---
 
@@ -254,6 +255,7 @@
 - [ガードレール](#ガードレール)
 - [フェイルクローズ](#フェイルクローズ)
 - [Least Privilege (IAM)](aws-iac.md#least-privilege-iam)
+- [Zero Trust](security.md#zero-trust)
 
 ---
 

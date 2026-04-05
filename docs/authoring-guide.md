@@ -34,6 +34,8 @@
     ├── aws-iac.md
     ├── database.md
     ├── distributed-systems.md
+    ├── security.md
+    ├── ai-ml.md
     └── templates/
         └── entry-template.md
 ```
@@ -250,6 +252,48 @@
 - Saga パターン
 - Idempotency Key
 
+### security.md
+
+- Zero Trust
+- SQL Injection
+- XSS（Cross-Site Scripting）
+- CSRF（Cross-Site Request Forgery）
+- 認証と認可（Authentication vs Authorization）
+- OAuth 2.0 / OIDC
+- JWT（JSON Web Token）
+- RBAC / ABAC
+- Secret Rotation
+- Supply Chain Attack
+- CORS（Cross-Origin Resource Sharing）
+- SSRF（Server-Side Request Forgery）
+- 暗号化の基礎（Encryption at Rest / in Transit）
+- ペネトレーションテスト
+- Dependency Confusion
+- ※ [Least Privilege (IAM)](../glossary/aws-iac.md#least-privilege-iam) を参照
+- ※ [TOCTOU](../glossary/concurrency.md#toctou) を参照
+- ※ [ディフェンス・イン・デプス](../glossary/design.md#ディフェンスインデプス) を参照
+- ※ [フェイルオープン](../glossary/design.md#フェイルオープン) / [フェイルクローズ](../glossary/design.md#フェイルクローズ) を参照
+- ※ [Shift Left](../glossary/testing.md#shift-left) を参照
+
+### ai-ml.md
+
+- Hallucination（ハルシネーション）
+- Prompt Injection
+- RAG（Retrieval-Augmented Generation）
+- Embedding（エンベディング）
+- Fine-tuning（ファインチューニング）
+- Token（トークン）
+- Temperature（テンプレチャー）
+- Context Window（コンテキストウィンドウ）
+- AI Guardrails
+- Eval（評価）
+- AI Agent（AIエージェント）
+- Vibe Coding（バイブコーディング）
+- MCP（Model Context Protocol）
+- Overfitting（過学習）
+- Bias（バイアス）
+- Training vs Inference（学習と推論）
+
 ---
 
 ## 各用語のテンプレート
@@ -382,20 +426,12 @@ README.md は索引として使う。全カテゴリについて記載するこ�
 既存ファイルの用語と重複する場合は、正は既存ファイルに残し、新規ファイルからは参照リンクとする。
 
 ```text
-security.md
 network.md
 systemd.md
 kubernetes.md
 ```
 
 例:
-
-- security.md
-  - Zero Trust
-  - Least Privilege — ※ IAM 文脈は [aws-iac.md](../glossary/aws-iac.md#least-privilege-iam) を参照
-  - TOCTOU — ※ [concurrency.md](../glossary/concurrency.md#toctou) を参照
-  - Defense in Depth — ※ [design.md](../glossary/design.md#ディフェンスインデプス) を参照
-  - Fail Open / Fail Closed — ※ [design.md](../glossary/design.md#フェイルオープン) を参照
 
 - systemd.md
   - Watchdog

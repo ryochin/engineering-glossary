@@ -18,6 +18,8 @@ glossary/
 ├── aws-iac.md             AWS / Infrastructure as Code
 ├── database.md            データベース
 ├── distributed-systems.md 分散システム
+├── security.md            セキュリティ
+├── ai-ml.md               AI / 機械学習
 └── templates/
     └── entry-template.md  用語エントリのテンプレート
 ```
@@ -225,6 +227,43 @@ glossary/
 - [Saga パターン](glossary/distributed-systems.md#saga-パターン)
 - [Idempotency Key](glossary/distributed-systems.md#idempotency-key)
 
+### セキュリティ
+
+- [Zero Trust](glossary/security.md#zero-trust)
+- [SQL Injection](glossary/security.md#sql-injection)
+- [XSS](glossary/security.md#xsscross-site-scripting)
+- [CSRF](glossary/security.md#csrfcross-site-request-forgery)
+- [認証と認可](glossary/security.md#認証と認可authentication-vs-authorization)
+- [OAuth 2.0 / OIDC](glossary/security.md#oauth-20--oidc)
+- [JWT](glossary/security.md#jwtjson-web-token)
+- [RBAC / ABAC](glossary/security.md#rbac--abac)
+- [Secret Rotation](glossary/security.md#secret-rotation)
+- [Supply Chain Attack](glossary/security.md#supply-chain-attack)
+- [CORS](glossary/security.md#corscross-origin-resource-sharing)
+- [SSRF](glossary/security.md#ssrfserver-side-request-forgery)
+- [暗号化の基礎](glossary/security.md#暗号化の基礎encryption-at-rest--in-transit)
+- [ペネトレーションテスト](glossary/security.md#ペネトレーションテスト)
+- [Dependency Confusion](glossary/security.md#dependency-confusion)
+
+### AI / 機械学習
+
+- [Hallucination](glossary/ai-ml.md#hallucinationハルシネーション)
+- [Prompt Injection](glossary/ai-ml.md#prompt-injection)
+- [RAG](glossary/ai-ml.md#ragretrieval-augmented-generation)
+- [Embedding](glossary/ai-ml.md#embeddingエンベディング)
+- [Fine-tuning](glossary/ai-ml.md#fine-tuningファインチューニング)
+- [Token](glossary/ai-ml.md#tokenトークン)
+- [Temperature](glossary/ai-ml.md#temperatureテンプレチャー)
+- [Context Window](glossary/ai-ml.md#context-windowコンテキストウィンドウ)
+- [AI Guardrails](glossary/ai-ml.md#ai-guardrails)
+- [Eval](glossary/ai-ml.md#eval評価)
+- [AI Agent](glossary/ai-ml.md#ai-agentaiエージェント)
+- [Vibe Coding](glossary/ai-ml.md#vibe-codingバイブコーディング)
+- [MCP](glossary/ai-ml.md#mcpmodel-context-protocol)
+- [Overfitting](glossary/ai-ml.md#overfittingオーバーフィッティング)
+- [Bias](glossary/ai-ml.md#biasバイアス)
+- [Training vs Inference](glossary/ai-ml.md#training-vs-inference学習と推論)
+
 ---
 
 ## よく一緒に現れる用語
@@ -246,6 +285,12 @@ glossary/
 - Code Smell → Dead Code → テクニカルデット → Rubber Stamping
 - RTO / RPO → Failover → Error Budget → SLO / SLA / SLI
 - Cargo Cult Agile → Shiny Object Syndrome → Second System Effect
+- Zero Trust → Least Privilege → RBAC / ABAC → 認証と認可
+- SQL Injection → XSS → CSRF → SSRF → ディフェンス・イン・デプス
+- Supply Chain Attack → Dependency Confusion → Secret Rotation
+- Hallucination → AI Guardrails → Eval → Prompt Injection
+- RAG → Embedding → Context Window → Token
+- Vibe Coding → AI Agent → MCP → Hallucination
 
 ---
 
