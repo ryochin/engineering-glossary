@@ -188,6 +188,7 @@
 - Code Smell（コードスメル）
 - Dead Code（デッドコード）
 - Rubber Stamping（形骸化レビュー）
+- nit / nitpick
 - ※ [Snowflake Server](../glossary/aws-iac.md#snowflake-server) を参照
 - ※ [Pet vs Cattle](../glossary/aws-iac.md#pet-vs-cattle) を参照
 
@@ -240,6 +241,7 @@
 - Phantom Read / Dirty Read / Non-repeatable Read
 - Hot Spot / Hot Key
 - Index の効かないクエリ
+- インデックスショットガン
 - Migration の罠
 - Replication Lag
 
@@ -269,6 +271,11 @@
 - 暗号化の基礎（Encryption at Rest / in Transit）
 - ペネトレーションテスト
 - Dependency Confusion
+- Billion Laughs Attack
+- XXE（XML External Entity）
+- Zip Bomb
+- ReDoS（Regular Expression DoS）
+- カナリアトークン（Canarytoken / Honeytoken）
 - ※ [Least Privilege (IAM)](../glossary/aws-iac.md#least-privilege-iam) を参照
 - ※ [TOCTOU](../glossary/concurrency.md#toctou) を参照
 - ※ [ディフェンス・イン・デプス](../glossary/design.md#ディフェンスインデプス) を参照

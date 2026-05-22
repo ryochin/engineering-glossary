@@ -165,6 +165,7 @@ glossary/
 - [Code Smell](glossary/bad-practices.md#code-smellコードスメル)
 - [Dead Code](glossary/bad-practices.md#dead-codeデッドコード)
 - [Rubber Stamping](glossary/bad-practices.md#rubber-stamping形骸化レビュー)
+- [nit / nitpick](glossary/bad-practices.md#nit--nitpick)
 
 ### プロジェクト管理
 
@@ -215,6 +216,7 @@ glossary/
 - [Phantom Read / Dirty Read / Non-repeatable Read](glossary/database.md#phantom-read--dirty-read--non-repeatable-read)
 - [Hot Spot / Hot Key](glossary/database.md#hot-spot--hot-key)
 - [Index の効かないクエリ](glossary/database.md#index-の効かないクエリ)
+- [インデックスショットガン](glossary/database.md#インデックスショットガン)
 - [Migration の罠](glossary/database.md#migration-の罠)
 - [Replication Lag](glossary/database.md#replication-lag)
 
@@ -244,6 +246,11 @@ glossary/
 - [暗号化の基礎](glossary/security.md#暗号化の基礎encryption-at-rest--in-transit)
 - [ペネトレーションテスト](glossary/security.md#ペネトレーションテスト)
 - [Dependency Confusion](glossary/security.md#dependency-confusion)
+- [Billion Laughs Attack](glossary/security.md#billion-laughs-attack)
+- [XXE](glossary/security.md#xxexml-external-entity)
+- [Zip Bomb](glossary/security.md#zip-bomb)
+- [ReDoS](glossary/security.md#redosregular-expression-denial-of-service)
+- [カナリアトークン](glossary/security.md#カナリアトークン)
 
 ### AI / 機械学習
 
@@ -280,6 +287,7 @@ glossary/
 - God Object → Spaghetti Code → Shotgun Surgery → Accidental Complexity
 - 属人化 → Runbook → Toil → Bystander Effect
 - N+1 クエリ問題 → Slow Query → Index の効かないクエリ → Connection Pool Exhaustion
+- インデックスショットガン → Index の効かないクエリ → Slow Query → Premature Optimization
 - 結果整合性 → Replication Lag → Split Brain → CAP 定理
 - 冪等性 → Idempotency Key → Saga パターン → 結果整合性
 - Code Smell → Dead Code → テクニカルデット → Rubber Stamping
@@ -288,6 +296,7 @@ glossary/
 - Zero Trust → Least Privilege → RBAC / ABAC → 認証と認可
 - SQL Injection → XSS → CSRF → SSRF → ディフェンス・イン・デプス
 - Supply Chain Attack → Dependency Confusion → Secret Rotation
+- Billion Laughs Attack → XXE → Zip Bomb → ReDoS（資源枯渇系 DoS）
 - Hallucination → AI Guardrails → Eval → Prompt Injection
 - RAG → Embedding → Context Window → Token
 - Vibe Coding → AI Agent → MCP → Hallucination

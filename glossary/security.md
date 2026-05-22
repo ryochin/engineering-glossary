@@ -572,6 +572,223 @@ API キー、パスワード、証明書などのシークレット（秘密情�
 
 ---
 
+## Billion Laughs Attack
+
+別名: 10億笑い攻撃 / XML Bomb / Exponential Entity Expansion / XEE
+
+### 意味
+XML の実体参照（Entity）がネスト定義できる仕様を悪用し、小さな XML ドキュメントを展開するとメモリが指数関数的に膨張する DoS 攻撃。わずか数 KB の入力でパーサーが数 GB のメモリを消費し、プロセスやサーバーを停止させる。
+
+### よくある例
+- `lol1` → `lol2` → ... `lol9` と 10 段階にネストした実体を定義し、`&lol9;` を 1 回参照するだけで `"lol"` が 10 億個に展開される
+- SAML レスポンス、SOAP API、RSS フィード、Office Open XML（docx / xlsx）のパーサーが外部から受け取った XML を無防備に展開してしまう
+- Java の `DocumentBuilderFactory` や Python の `xml.etree.ElementTree`（古いバージョン）でデフォルト設定のまま XML を受け付け、1 リクエストでワーカープロセスが OOM Kill される
+- YAML でも同種の攻撃が可能で、2019 年に Kubernetes API に対する YAML Bomb（CVE-2019-11253）が報告された
+
+### ありがちな症状
+- 特定のリクエストを受けたタイミングで API サーバーの Pod が OOMKilled を繰り返す
+- XML / SAML を扱うエンドポイントの CPU・メモリ使用量が単発リクエストで急騰する
+- パーサーが「展開済みノード数」や「エンティティ深さ」の上限を設定していない
+- ライブラリのバージョンが古く、DTD 処理がデフォルトで有効になっている
+
+### 近い言葉との違い
+- [XXE（XML External Entity）](#ssrfserver-side-request-forgery) に似た別攻撃: XXE は外部エンティティ参照で内部ファイルを読み取る情報漏洩攻撃。Billion Laughs は内部実体のネスト展開による DoS
+- Zip Bomb: 圧縮ファイル（例: `42.zip`）を展開すると巨大な容量になる攻撃。原理は似ているが対象が異なる
+- ReDoS（Regex Denial of Service）: 正規表現のバックトラック爆発による DoS。こちらは CPU を焼く点が異なる（Billion Laughs はメモリ）
+- [SSRF](#ssrfserver-side-request-forgery): XXE を踏み台にして発生することがあるが、Billion Laughs は外部通信を伴わない純粋な計算資源攻撃
+
+### 背景・語源
+2003 年頃に提唱された古典的な攻撃手法。エンティティ名が `lol1`, `lol2`, ... となっており、最終的に `lol` が 10 億個（1 billion = 10^9）生成されることから「Billion Laughs」と名付けられた。OWASP の XML Security チートシートに長年掲載されている定番脆弱性で、SAML や SOAP が主流だった時代から現在の REST + XML 変換系 API まで影響が続いている。
+
+### 対策
+- XML パーサーの DTD 処理を無効化する。Java なら `FEATURE_SECURE_PROCESSING` を有効化、`disallow-doctype-decl` を true に設定
+- Python では `defusedxml` ライブラリを使用し、標準の `xml.*` モジュールを直接使わない
+- エンティティ展開の上限（`entityExpansionLimit`、`maxOccurLimit` など JVM システムプロパティ）を明示的に設定する
+- そもそも XML が不要なら JSON に切り替える。SAML のように XML 必須な場合は上記の無効化を徹底する
+- API Gateway や WAF でリクエストボディのサイズ上限を設け、DTD 宣言を含むペイロードをブロックする
+
+### 関連用語
+- [XXE](#xxexml-external-entity)
+- [Zip Bomb](#zip-bomb)
+- [ReDoS](#redosregular-expression-denial-of-service)
+- [SSRF](#ssrfserver-side-request-forgery)
+- [ディフェンス・イン・デプス](design.md#ディフェンスインデプス)
+
+---
+
+## XXE（XML External Entity）
+
+別名: XML 外部実体参照攻撃 / XML External Entity Injection
+
+### 意味
+XML 仕様の「外部実体参照」機能を悪用し、XML パーサーにローカルファイル読み取り・内部ネットワークへのリクエスト・DoS を行わせる攻撃。DTD 宣言で `SYSTEM "file:///etc/passwd"` のような外部リソースを参照させ、パーサーがその内容を XML 解析結果に埋め込むことで機密情報が漏洩する。
+
+### よくある例
+- `<!ENTITY xxe SYSTEM "file:///etc/passwd">` を含む XML を送信し、`&xxe;` を参照させてレスポンスに `/etc/passwd` の内容を含めさせる
+- `<!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/iam/security-credentials/">` で AWS EC2 のメタデータを窃取（[SSRF](#ssrfserver-side-request-forgery) との合わせ技）
+- SAML レスポンスや SOAP リクエストに悪意ある DTD を混入させ、認証プロバイダー側のファイルを読む
+- 2017 年に WordPress、Facebook、Apple iWork 等で実際に XXE による情報漏洩が発見されている
+
+### ありがちな症状
+- Java の `DocumentBuilderFactory` や PHP の `libxml` がデフォルト設定のまま DTD を解釈している
+- SAML / SOAP / SVG / docx / xlsx など「実は XML」なフォーマットを扱うエンドポイントで外部実体が有効
+- ファイルアップロード機能が XML ベースのファイル（SVG、Office 文書）を中身の検証なしに処理している
+- パース時に「妙に長い時間がかかる」「外部への謎のネットワーク通信が発生する」
+
+### 近い言葉との違い
+- [Billion Laughs Attack](#billion-laughs-attack): 同じ XML パーサー設定で防げるが、こちらは DoS 特化で外部通信を伴わない
+- [SSRF](#ssrfserver-side-request-forgery): XXE が踏み台になって SSRF に繋がるケースが多い。XXE は XML パーサー内の外部参照経由で発生する点が特徴
+- [SQL Injection](#sql-injection): 注入という意味では類似。ただし対象が XML パーサーか SQL エンジンかで異なる
+
+### 背景・語源
+OWASP Top 10 2017 で独立カテゴリ「A4: XML External Entities (XXE)」として初めてランクイン（その後 2021 版で「Security Misconfiguration」に統合）。元々 XML 1.0 仕様に存在した正当な機能が、信頼できない入力に対して有効化されたまま運用されることで脆弱性となった。レガシーな SAML / SOAP スタックで今なお発見される。
+
+### 対策
+- XML パーサーで DTD / 外部実体を明示的に無効化する
+  - Java: `factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)`
+  - Python: 標準 `xml.*` ではなく [`defusedxml`](https://pypi.org/project/defusedxml/) を使う
+  - PHP: `libxml_disable_entity_loader(true)`（PHP 8+ ではデフォルト無効）
+- そもそも XML が不要なら JSON に移行する
+- SVG・Office 文書をサーバー側で処理する場合、信頼できない XML として DTD 無効化を徹底する
+- WAF で外部 DTD 参照を含むペイロードをブロックする
+
+### 関連用語
+- [Billion Laughs Attack](#billion-laughs-attack)
+- [SSRF](#ssrfserver-side-request-forgery)
+- [SQL Injection](#sql-injection)
+- [ディフェンス・イン・デプス](design.md#ディフェンスインデプス)
+
+---
+
+## Zip Bomb
+
+別名: ジップボム / Decompression Bomb / 圧縮爆弾
+
+### 意味
+展開すると元の数万〜数兆倍のサイズになるよう細工された圧縮ファイルを送り込み、展開側のディスク・メモリを枯渇させる DoS 攻撃。典型例の `42.zip` はわずか 42 KB で展開後 4.5 PB（ペタバイト）になる。ZIP だけでなく gzip、bzip2、PNG など任意の圧縮フォーマットで成立しうる。
+
+### よくある例
+- ウイルススキャナーやメールフィルタに巨大化する zip を食わせ、サーバーを停止させる
+- 画像アップロード機能に「表向き小さな PNG」を投げ、サーバー側の画像ライブラリが展開時に OOM で落ちる
+- CI の Artifact 展開で信頼できない zip を解凍し、ランナーのディスクが埋まる
+- S3 にアップロードされた zip を Lambda が自動展開する構成で、1 ファイルで Lambda のエフェメラルストレージを埋め尽くす
+
+### ありがちな症状
+- アップロード処理中にワーカープロセスが OOMKilled される
+- 「/tmp が満杯」「inode 枯渇」でサービス全体が停止する
+- 展開処理にタイムアウトや容量上限がない
+- ネスト圧縮（zip of zip of zip...）の検査が行われていない
+
+### 近い言葉との違い
+- [Billion Laughs Attack](#billion-laughs-attack): XML 実体参照版の展開爆弾。原理は同じだがフォーマットとパーサーが異なる
+- [ReDoS](#redosregular-expression-denial-of-service): CPU を焼く DoS。Zip Bomb はディスク/メモリを焼く
+- Fork Bomb: プロセス数を枯渇させる DoS。こちらは OS レベルの資源枯渇攻撃
+
+### 背景・語源
+1990 年代末から存在する古典的攻撃。代表例 `42.zip`（AERAsec 社公開）は 16 層ネストの zip で 4.3 × 10^9 倍に展開される。現代では単層でも展開比が極端に大きい「gzip bomb」「PNG bomb」なども使われ、画像処理ライブラリ（ImageMagick）や PDF パーサーを落とす用途で悪用される。
+
+### 対策
+- 展開サイズに上限を設け、ストリーム処理で閾値超過を検知したら中断する（Python なら `zipfile.ZipFile` の `file_size` を事前チェック）
+- 展開深さ（ネスト階層）にも上限を設ける
+- 信頼できないファイルは隔離されたサンドボックス（cgroup で memory/disk 制限、Lambda の短命環境など）で処理する
+- 画像は ImageMagick の `resource limits`（`-limit memory`、`-limit disk`）で制約する
+- アンチウイルス・メールゲートウェイは展開比やネスト数で検疫する
+
+### 関連用語
+- [Billion Laughs Attack](#billion-laughs-attack)
+- [ReDoS](#redosregular-expression-denial-of-service)
+- [バルクヘッド](operations.md#バルクヘッド)
+- [レートリミット](operations.md#レートリミット)
+
+---
+
+## ReDoS（Regular Expression Denial of Service）
+
+別名: 正規表現 DoS / 正規表現爆発 / Catastrophic Backtracking
+
+### 意味
+正規表現エンジンのバックトラッキング実装（NFA ベース）の最悪計算量が指数的に膨らむことを悪用し、悪意ある入力文字列でエンジンの CPU を焼き切る DoS 攻撃。脆弱な正規表現（例: `(a+)+$`）に対して `"aaaa...aaaab"` を与えると、マッチ判定に数秒〜数分以上かかり、イベントループがブロックする。
+
+### よくある例
+- 2016 年に Stack Overflow が 34 分間ダウンした事例: ホームページ表示のクライアントサイド正規表現が、特定の投稿に含まれる長い空白列で catastrophic backtracking を起こした
+- 2019 年の Cloudflare 障害: WAF ルールの正規表現 `(?:(?:\"|'|\]|\}|\\|\d|(?:nan|infinity|true|false|null|undefined|symbol|math)|\`|\-|\+)+[)]*;?((?:\s|-|~|!|{}|\|\||\+)*.*(?:.*=.*)))` が CPU を 100% に張り付かせた
+- Node.js のバリデーション（メールアドレス、URL）で脆弱な正規表現を使い、ユーザー入力一発でイベントループが停止する
+
+### ありがちな症状
+- 「ネスト量指定子」のある正規表現（`(a+)+`、`(a*)*`、`(a|a)+`）を使っている
+- 単一 HTTP リクエストで Node.js / Ruby / Python プロセスの CPU が 100% に張り付き、他のリクエストが詰まる
+- APM で「特定のエンドポイントだけ p99 レイテンシが秒オーダー」になっている
+- WAF / バリデーションライブラリのバージョンが古く、既知の脆弱パターンが残っている
+
+### 近い言葉との違い
+- [Billion Laughs Attack](#billion-laughs-attack) / [Zip Bomb](#zip-bomb): メモリ・ディスクを枯渇させる。ReDoS は CPU を枯渇させる
+- Algorithmic Complexity Attack: より広い概念。ReDoS はその特殊ケース。Hash Collision DoS なども同族
+- [Thundering Herd](concurrency.md#thundering-herdサンダリングハード): 負荷集中は似るが、こちらは並行制御の問題であり入力による最悪計算量攻撃ではない
+
+### 背景・語源
+2003 年に Scott Crosby と Dan Wallach がアルゴリズム複雑性攻撃の一種として論文化。「正規表現エンジンの実装によっては指数時間になる」という理論を実運用での攻撃に結び付けた。Perl / PCRE / JavaScript / Python `re` などバックトラック型の実装が該当し、Go の `regexp` や Rust の `regex` クレートのような RE2 / DFA 系は原理的に影響を受けない。
+
+### 対策
+- ネスト量指定子を避け、可能なら所有量指定子（`a++`）やアトミックグループ `(?>...)` を使う
+- 入力長に上限を設け、正規表現に渡す前に validate する
+- タイムアウト付きマッチを使う（Java の `Matcher.find()` は難しいが、Node.js なら外部プロセスやワーカースレッド、Go なら `context` 付きで）
+- 正規表現エンジンを RE2 / Hyperscan など線形時間保証のある実装に切り替える
+- CI で [`safe-regex`](https://www.npmjs.com/package/safe-regex) や [`rxxr2`](https://github.com/superhuman/rxxr2) を使い、脆弱パターンを検出する
+
+### 関連用語
+- [Billion Laughs Attack](#billion-laughs-attack)
+- [Zip Bomb](#zip-bomb)
+- [Thundering Herd](concurrency.md#thundering-herdサンダリングハード)
+- [バックプレッシャー](operations.md#バックプレッシャー)
+
+---
+
+## カナリアトークン
+
+別名: Canarytoken / Canary Token / ハニートークン（Honeytoken）
+
+### 意味
+攻撃者の侵入や情報漏洩を検知するために、システム内に意図的に仕込む「おとり」のトークン・ファイル・認証情報。正規の業務では参照されないため、アクセスや使用が観測された時点で「不正な侵入が起きている」と高い確度で判断できる。検知された瞬間に運用チームへ通知が飛ぶ。炭鉱のカナリア（毒ガスで先に倒れて危険を知らせる）が語源。
+
+### よくある例
+- ダミーの AWS アクセスキーをソースコードや設定ファイルに埋め込み、CloudTrail で `GetCallerIdentity` 等の呼び出しを監視する。漏洩したリポジトリを攻撃者がスキャンしてキーを試した瞬間に検知する
+- 機密書類風の Word / PDF ファイル（`給与一覧_2026.xlsx` 等）にトラッキング用 URL を仕込み、ファイルサーバーや S3 に配置する。攻撃者が中身を開くと外部 URL にアクセスが飛び、IP・User-Agent が記録される
+- データベースに「決して参照されないはずの管理者ユーザー（例: `admin_legacy`）」を仕込み、ログインや SELECT が来たら即アラート
+- DNS カナリアトークン（`unique-id.canarytokens.com` 等）を設定ファイルに混ぜ、攻撃者がホスト名解決した瞬間に通知を受け取る
+- Thinkst Canary や [canarytokens.org](https://canarytokens.org/)（無料のホスト型サービス）で発行・運用する
+
+### ありがちな症状
+- 「侵入されているかどうか」を判断する手段が一切なく、ログイン成功・正常応答だけを監視している
+- 漏洩の発覚が外部からの通報や報道経由（数ヶ月〜数年遅れ）で初めて気づく
+- カナリアトークンを仕込んでみたが、通知先が個人 Slack や形骸化したメーリスで誰も気づかない
+- 正規業務でうっかりトークンを踏んでしまい、誤検知でアラート疲れが起き運用停止される
+
+### 近い言葉との違い
+- ハニーポット（Honeypot）: おとりの「システム全体」（脆弱な VM やサーバー）。カナリアトークンは「単一のトークン・ファイル」で軽量・低コスト
+- IDS / IPS（侵入検知・防止システム）: シグネチャやアノマリ検知で攻撃を見つける。カナリアトークンは「触られた事実」だけで判定するためフォールスポジティブが極めて少ない
+- [Secret Rotation](#secret-rotation): 本物のシークレットを定期更新する。カナリアトークンは「決して使われない偽物のシークレット」を撒く点が逆
+- WAF / アンチウイルス: 既知の攻撃パターンを防ぐ。カナリアトークンは検知できなかった侵入が「すでに起きた後」を捕まえる
+
+### 背景・語源
+語源は石炭鉱山で毒ガス検知に使われたカナリア（鳥）。古くからセキュリティ分野では「ハニートークン」と呼ばれる概念があったが、2015 年に南アフリカのセキュリティ企業 Thinkst が `canarytokens.org` を公開し、誰でも数クリックで AWS キー風・PDF・DNS など多様なカナリアを発行できるようにしたことで一気に普及した。Cloudflare、Stripe、GitHub など多くの組織が内部監視に採用している。
+
+### 対策
+- 通知先は当番制の Slack チャンネルや PagerDuty に接続し、24/365 で誰かが見る状態を維持する
+- カナリアの配置場所（S3、SharePoint、リポジトリ、ファイルサーバー、CI/CD 環境）と用途を台帳に残し、正規業務での誤踏みを区別できるようにする
+- カナリアキー自体には IAM 権限を一切与えない（誰かが「使う」だけで検知できればよい）。万一悪用されても被害ゼロ
+- リポジトリ・設定ファイル・バックアップ・退職者の引き継ぎ書類など「侵入後に攻撃者が漁る場所」に重点的に仕込む
+- 半年〜1 年ごとにカナリアの位置と通知パスをローテーションし、攻撃者が学習して回避することを防ぐ
+- インシデント対応ランブックに「カナリア発報時の初動」を明記する（誰が何を確認し、どの順で隔離するか）
+
+### 関連用語
+- [Secret Rotation](#secret-rotation)
+- [Zero Trust](#zero-trust)
+- [Supply Chain Attack](#supply-chain-attack)
+- [ディフェンス・イン・デプス](design.md#ディフェンスインデプス)
+- [Shift Left](testing.md#shift-left)
+
+---
+
 - ※ [Least Privilege (IAM)](aws-iac.md#least-privilege-iam) を参照
 - ※ [TOCTOU](concurrency.md#toctou) を参照
 - ※ [ディフェンス・イン・デプス](design.md#ディフェンスインデプス) を参照

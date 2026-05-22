@@ -247,6 +247,57 @@ ANSI SQL-92 標準でトランザクション分離レベルが定義された�
 - [Slow Query](#slow-query)
 - [N+1 クエリ問題](#n1-クエリ問題)
 - [Migration の罠](#migration-の罠)
+- [インデックスショットガン](#インデックスショットガン)
+
+---
+
+## インデックスショットガン
+
+別名: Index Shotgun / ショットガンインデックス
+
+### 意味
+インデックスを理解せず、とりあえず全カラムや思いつくカラムに手当たり次第インデックスを作成するアンチパターン。書籍『SQLアンチパターン』（Bill Karwin）で紹介されている。読み取り性能を上げるつもりが、書き込み性能の劣化・ストレージの浪費・オプティマイザの混乱を招く。
+
+### よくある例
+- レビューで「念のため」と言われ、`WHERE` や `ORDER BY` に出てきたカラム全部に単独インデックスを追加する
+- 複合インデックスの列順序を考えず、同じカラム組の順列違いを複数作成する（`(a,b)` と `(b,a)` を両方作る、など）
+- 主キー（自動でインデックスが作られる）に対して明示的に `CREATE INDEX` を追加する
+- `VARCHAR(1000)` のような長大カラムにそのままインデックスを作り、B-Tree が巨大化する
+- `LIKE '%xxx%'` や関数適用クエリ（`YEAR(created_at)`）に対して効かないインデックスを作り、使われないまま残る
+- Rails の migration で `add_index` を手癖で並べ、INSERT 負荷の高いテーブルの書き込みが劇的に遅くなる
+
+### ありがちな症状
+- `INSERT` / `UPDATE` / `DELETE` が想定より遅く、APM 上で書き込みレイテンシが DB 読み取りを上回る
+- `pg_stat_user_indexes` / `sys.schema_unused_indexes`（MySQL）で `idx_scan = 0` の未使用インデックスが大量にある
+- テーブルサイズよりインデックスの合計サイズのほうが大きい
+- `EXPLAIN` のたびにオプティマイザが意図しないインデックスを選び、実行計画が不安定になる
+- バックアップ / リストア / レプリケーションの所要時間が肥大化している
+
+### 近い言葉との違い
+- [Index の効かないクエリ](#index-の効かないクエリ): インデックスがあるのに使われない問題。インデックスショットガンは「不要なインデックスを作りすぎる」問題で、方向が逆
+- [Premature Optimization](anti-patterns.md#premature-optimization): 計測前に最適化する点で共通。インデックスショットガンはその DB インデックス版と言える
+- [Shotgun Surgery](bad-practices.md#shotgun-surgery): 名前は似ているが別概念。こちらは「1 変更が多数ファイルに波及する設計問題」
+- [ショットガンデバッグ](bad-practices.md#ショットガンデバッグ): 原因を調べず手当たり次第に修正する点で思想が似ているが、対象はデバッグ手法
+
+### 背景・語源
+Bill Karwin『SQL Antipatterns』（2010, Pragmatic Bookshelf）第13章で紹介されたアンチパターン。「散弾銃のように撃ちまくる（＝闇雲に貼る）」比喩から命名。同書では対策として **MENTOR 原則**（Measure / Explain / Nominate / Test / Optimize / Rebuild）を提唱し、「インデックススナイパーライフル（的確な1発）」を心掛けるべきとしている。
+
+### 対策
+- 新規インデックスを貼る前に `EXPLAIN` / `EXPLAIN ANALYZE` で現状の実行計画を確認し、本当に必要か判断する
+- 未使用インデックスを定期的に棚卸しする（PostgreSQL: `pg_stat_user_indexes`、MySQL: `sys.schema_unused_indexes`、RDS Performance Insights）
+- 複合インデックスは「クエリの `WHERE` / `ORDER BY` / `GROUP BY` の実パターン」から左端一致原則で設計する
+- カバリングインデックス（`INCLUDE` 句、MySQL の拡張）を活用し、インデックス数を増やすのではなく1つを強くする
+- 主キーやユニーク制約で自動作成されるインデックスを把握し、重複を避ける
+- `LIKE '%...%'` や関数検索には B-Tree ではなく、`pg_trgm` / 式インデックス / 全文検索（Elasticsearch）を選ぶ
+- CI / PR レビューでインデックス追加を明示的にレビュー対象とし、「なぜ必要か」「どのクエリが速くなるか」を記述させる
+
+### 関連用語
+- [Index の効かないクエリ](#index-の効かないクエリ)
+- [Slow Query](#slow-query)
+- [Migration の罠](#migration-の罠)
+- [Premature Optimization](anti-patterns.md#premature-optimization)
+- [Shotgun Surgery](bad-practices.md#shotgun-surgery)
+- [ショットガンデバッグ](bad-practices.md#ショットガンデバッグ)
 
 ---
 

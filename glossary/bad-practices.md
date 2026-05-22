@@ -882,5 +882,50 @@ Martin Fowler が Kent Beck との共著 *Refactoring: Improving the Design of E
 
 ---
 
+## nit / nitpick
+
+別名: ニット / ニットピック / 些細な指摘
+
+### 意味
+コードレビューのコメントに付ける慣習的なプレフィックスで、「ブロッカーではない些細な指摘」を意味する。本来は「些細なことを過剰に粗探しする」というネガティブな英語表現だが、レビュー文化においては逆に「これは必須修正ではないので無視してもよい」という**非ブロッキングを明示するラベル**として定着した。それ自体は悪い習慣ではなく、健全なレビュー文化を支える語彙。
+
+### よくある例
+- `nit: 余分なスペースが入っています` — 直してほしいが、マージは止めない
+- `nitpick: 変数名を userId より uid にすると揃いそう` — 趣味の範囲、無視可
+- GitHub / GitLab の PR コメントで `nit:` `nits:` `nit (non-blocking):` のように先頭に付ける
+- Google の Code Review Developer Guide や Chromium のレビュー慣習で公式に紹介されているラベル
+
+### ありがちな症状
+- レビューコメントの重要度が区別されておらず、些細な空白指摘がブロッカーと同列に扱われてマージが遅れる
+- 逆に `nit:` ばかりが大量に並び、本当に直すべき重大な指摘が埋もれる（"nit洪水"）
+- レビュアーが「些細だけど言いたい」を `nit:` でなく無印で書いてしまい、レビュイーがブロッカーと誤解する
+- 文化として `nit:` の意味（無視してよい / SHOULD 修正）がチーム内で共有されておらず、人によって解釈がバラバラ
+
+### 近い言葉との違い
+- **blocker / blocking**: マージを止める必須指摘。`nit` の対義
+- **suggestion**: 改善提案。`nit` より少し重く、検討してほしいニュアンス
+- **question**: 質問。指摘ではなく意図確認
+- **FYI / praise**: 情報共有や褒め言葉。修正は不要
+- [Rubber Stamping](#rubber-stamping形骸化レビュー): nit すら付けず形式承認するアンチパターン。nit は逆に「ちゃんと読んだ証」になる
+- **Bike-shedding**: 些細な議論で時間を浪費する現象。`nit:` ラベルは些細な指摘を**軽量化して片付ける**ことで Bike-shedding を防ぐ働きがある
+
+### 背景・語源
+英語の `nitpick` は「シラミ（nit）の卵を摘み取る」が原義で、19 世紀から「重箱の隅をつつく」の意で使われてきた。ソフトウェアレビュー文化では 2000 年代後半〜2010 年代に Google や OSS コミュニティで `nit:` プレフィックスの慣習が広まり、Conventional Comments（[conventionalcomments.org](https://conventionalcomments.org/)）という仕様化の動きにもつながった。`nit` のほか `praise`, `question`, `issue`, `suggestion`, `chore` などのラベル体系が提案されている。
+
+### 対策
+- チーム内で `nit:` の意味を明文化する（推奨: 「直すかどうかはレビュイー判断、マージはブロックしない」）
+- レビューコメントのプレフィックス体系（`nit:` / `suggestion:` / `blocker:` / `question:`）をチームのレビューガイドに記載する
+- nit が大量に出る場合は linter / formatter / EditorConfig で機械的に潰し、人間の目を本質的な指摘に集中させる
+- レビュイーは nit を全部対応する必要はないが、無視する場合も「次の PR で対応します」など一言返すと感情的な行き違いを防げる
+- 重要度が混在しそうなら GitHub の suggestion 機能や [Conventional Comments](https://conventionalcomments.org/) の採用を検討する
+
+### 関連用語
+- [Rubber Stamping](#rubber-stamping形骸化レビュー)
+- [Bike-shedding](anti-patterns.md#bike-shedding自転車置き場の議論--parkinsons-law-of-triviality)
+- [Code Smell](#code-smellコードスメル)
+- [Gold Plating](anti-patterns.md#gold-plating)
+
+---
+
 ※ [Snowflake Server](aws-iac.md#snowflake-server) を参照
 ※ [Pet vs Cattle](aws-iac.md#pet-vs-cattle) を参照
