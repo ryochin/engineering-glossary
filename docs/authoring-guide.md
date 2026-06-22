@@ -141,6 +141,12 @@
 - Error Budget（エラーバジェット）
 - On-call
 - War Room
+- ディザスタリカバリ（DR）
+- DR戦略の4類型（Backup & Restore / Pilot Light / Warm Standby / Multi-Site）
+- BCP（事業継続計画）
+- Failback（フェイルバック）
+- 3-2-1 バックアップルール
+- Game Day（ゲームデー）
 
 ### anti-patterns.md
 

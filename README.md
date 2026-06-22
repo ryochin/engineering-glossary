@@ -118,6 +118,13 @@ glossary/
 - [Error Budget](glossary/operations.md#error-budgetエラーバジェット)
 - [On-call](glossary/operations.md#on-call)
 - [War Room](glossary/operations.md#war-room)
+- [Dead Man's Switch](glossary/operations.md#dead-mans-switchデッドマンスイッチ)
+- [ディザスタリカバリ（DR）](glossary/operations.md#ディザスタリカバリdr)
+- [DR戦略の4類型](glossary/operations.md#dr戦略の4類型)
+- [BCP（事業継続計画）](glossary/operations.md#bcp事業継続計画)
+- [Failback](glossary/operations.md#failbackフェイルバック)
+- [3-2-1 バックアップルール](glossary/operations.md#3-2-1-バックアップルール)
+- [Game Day](glossary/operations.md#game-dayゲームデー)
 
 ### アンチパターン
 
@@ -292,6 +299,9 @@ glossary/
 - 冪等性 → Idempotency Key → Saga パターン → 結果整合性
 - Code Smell → Dead Code → テクニカルデット → Rubber Stamping
 - RTO / RPO → Failover → Error Budget → SLO / SLA / SLI
+- ディザスタリカバリ → DR戦略の4類型 → BCP → Failback → Game Day
+- 3-2-1 バックアップルール → ディザスタリカバリ → RTO / RPO → Chaos Engineering
+- ヘルスチェック → ライブネス → Dead Man's Switch → フェイルセーフ
 - Cargo Cult Agile → Shiny Object Syndrome → Second System Effect
 - Zero Trust → Least Privilege → RBAC / ABAC → 認証と認可
 - SQL Injection → XSS → CSRF → SSRF → ディフェンス・イン・デプス
